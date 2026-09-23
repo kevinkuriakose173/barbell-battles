@@ -1,16 +1,17 @@
-import { type Href, useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/button';
+import { AppHeader } from '@/components/app-header';
 import { colors, spacing } from '@/constants/theme';
 import { getExercisesWithEntries } from '@/features/lifts/api';
 import type { ExerciseWithEntries } from '@/features/lifts/types';
 import { formatWeight } from '@/lib/units';
 import { useAuth } from '@/providers/auth-provider';
 
-export default function MyLiftsScreen() {
+export default function MyLiftsTabScreen() {
   const router = useRouter();
   const { profile } = useAuth();
   const [exercises, setExercises] = useState<ExerciseWithEntries[]>([]);
@@ -25,18 +26,14 @@ export default function MyLiftsScreen() {
   useFocusEffect(useCallback(() => { setIsLoading(true); void loadLifts(); }, [loadLifts]));
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Pressable onPress={() => router.back()}><Text style={styles.back}>‹ Leaderboard</Text></Pressable>
-        <View style={styles.header}>
-          <Text style={styles.eyebrow}>MY LIFTS</Text>
-          <Text style={styles.title}>Personal records</Text>
-          <Text style={styles.description}>Your best entry for each lift, {profile?.first_name}.</Text>
-        </View>
-        <View style={styles.actions}>
-          <Button onPress={() => router.push('/lifts/add')}>Add lift</Button>
-          <Button onPress={() => router.push('/groups' as Href)} variant="secondary">Groups</Button>
-        </View>
+        <AppHeader
+          description={`Your best entry for each lift, ${profile?.first_name ?? 'athlete'}.`}
+          eyebrow="MY LIFTS"
+          title="Personal records"
+        />
+        <Button onPress={() => router.push('/lifts/add')}>Add lift</Button>
         {isLoading ? <ActivityIndicator color={colors.primaryLight} size="large" /> : (
           <View style={styles.list}>{exercises.map((exercise) => {
             const record = exercise.lift_entries.reduce((best, entry) => Math.max(best, Number(entry.weight_kg)), 0);
@@ -54,20 +51,14 @@ export default function MyLiftsScreen() {
 }
 
 const styles = StyleSheet.create({
-  actions: { gap: spacing.sm },
-  back: { color: colors.primaryLight, fontSize: 16, fontWeight: '700' },
   card: { alignItems: 'center', backgroundColor: colors.surface, borderColor: colors.border, borderRadius: 16, borderWidth: 1, flexDirection: 'row', justifyContent: 'space-between', padding: spacing.lg },
   content: { gap: spacing.lg, padding: spacing.lg, paddingBottom: spacing.xl },
-  description: { color: colors.textMuted, fontSize: 15, lineHeight: 22 },
   entryCount: { color: colors.textMuted, fontSize: 13, marginTop: spacing.xs },
   exerciseName: { color: colors.text, fontSize: 18, fontWeight: '800' },
-  eyebrow: { color: colors.accent, fontSize: 12, fontWeight: '800', letterSpacing: 1.4 },
-  header: { gap: spacing.sm },
   list: { gap: spacing.md },
   pressed: { opacity: 0.75 },
   record: { alignItems: 'flex-end', gap: spacing.xs },
   recordLabel: { color: colors.accent, fontSize: 11, fontWeight: '900', letterSpacing: 1 },
   recordValue: { color: colors.text, fontSize: 20, fontWeight: '900' },
   safeArea: { backgroundColor: colors.background, flex: 1 },
-  title: { color: colors.text, fontSize: 32, fontWeight: '900', letterSpacing: -1 },
 });

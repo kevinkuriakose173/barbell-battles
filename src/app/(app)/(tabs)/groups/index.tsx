@@ -1,15 +1,16 @@
 import { type Href, useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/button';
+import { AppHeader } from '@/components/app-header';
 import { colors, spacing } from '@/constants/theme';
 import { getGroups } from '@/features/groups/api';
 import type { Group } from '@/features/groups/types';
 import { useAuth } from '@/providers/auth-provider';
 
-export default function GroupsScreen() {
+export default function GroupsTabScreen() {
   const router = useRouter();
   const { session } = useAuth();
   const [groups, setGroups] = useState<Group[]>([]);
@@ -24,14 +25,13 @@ export default function GroupsScreen() {
   useFocusEffect(useCallback(() => { setIsLoading(true); void loadGroups(); }, [loadGroups]));
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Pressable onPress={() => router.back()}><Text style={styles.back}>‹ My lifts</Text></Pressable>
-        <View style={styles.header}>
-          <Text style={styles.eyebrow}>GROUPS</Text>
-          <Text style={styles.title}>Your groups</Text>
-          <Text style={styles.description}>Create a group or join friends with an invite code.</Text>
-        </View>
+        <AppHeader
+          description="Create a group or join friends with an invite code."
+          eyebrow="GROUPS"
+          title="Your groups"
+        />
         <View style={styles.actions}>
           <Button onPress={() => router.push('/groups/create' as Href)}>Create group</Button>
           <Button onPress={() => router.push('/groups/join' as Href)} variant="secondary">Join group</Button>
@@ -57,7 +57,6 @@ export default function GroupsScreen() {
 
 const styles = StyleSheet.create({
   actions: { gap: spacing.sm },
-  back: { color: colors.primaryLight, fontSize: 16, fontWeight: '700' },
   card: { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: 16, borderWidth: 1, gap: spacing.sm, padding: spacing.lg },
   cardHeader: { alignItems: 'center', flexDirection: 'row', gap: spacing.sm, justifyContent: 'space-between' },
   code: { color: colors.text, fontSize: 21, fontWeight: '900', letterSpacing: 2 },
@@ -67,12 +66,9 @@ const styles = StyleSheet.create({
   description: { color: colors.textMuted, fontSize: 15, lineHeight: 22 },
   empty: { alignItems: 'center', paddingVertical: spacing.xl },
   emptyTitle: { color: colors.text, fontSize: 18, fontWeight: '800', marginBottom: spacing.sm },
-  eyebrow: { color: colors.accent, fontSize: 12, fontWeight: '800', letterSpacing: 1.4 },
   groupName: { color: colors.text, flex: 1, fontSize: 20, fontWeight: '900' },
-  header: { gap: spacing.sm },
   list: { gap: spacing.md },
   memberCount: { color: colors.textMuted, fontSize: 14 },
   role: { color: colors.accent, fontSize: 11, fontWeight: '900', letterSpacing: 1 },
   safeArea: { backgroundColor: colors.background, flex: 1 },
-  title: { color: colors.text, fontSize: 32, fontWeight: '900' },
 });

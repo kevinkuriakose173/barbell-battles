@@ -24,7 +24,7 @@ export default function LiftHistoryScreen() {
 
   const unit = profile?.preferred_unit ?? 'lb';
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.content}>
         <Pressable onPress={() => router.back()}><Text style={styles.back}>‹ My lifts</Text></Pressable>
         {!exercise ? <ActivityIndicator color={colors.primaryLight} /> : <>

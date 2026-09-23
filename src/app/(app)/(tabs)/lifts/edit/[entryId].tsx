@@ -57,7 +57,7 @@ export default function EditLiftScreen() {
 
   const unit = profile?.preferred_unit ?? 'lb';
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flex}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <Pressable onPress={() => router.back()}><Text style={styles.back}>‹ Back</Text></Pressable>
