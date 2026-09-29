@@ -1,4 +1,4 @@
-import { Link } from 'expo-router';
+import { type Href, Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 
@@ -6,10 +6,12 @@ import { AuthScreen } from '@/components/auth-screen';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { colors, spacing } from '@/constants/theme';
+import { AUTH_CALLBACK_URL } from '@/lib/auth-links';
 import { supabase } from '@/lib/supabase';
 import { withTimeout } from '@/lib/with-timeout';
 
 export default function SignUpScreen() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
@@ -37,6 +39,9 @@ export default function SignUpScreen() {
         supabase.auth.signUp({
           email: email.trim(),
           password,
+          options: {
+            emailRedirectTo: AUTH_CALLBACK_URL,
+          },
         })
       );
 
@@ -46,10 +51,7 @@ export default function SignUpScreen() {
       }
 
       if (!data.session) {
-        Alert.alert(
-          'Check your email',
-          'Confirm your email address, then return to Barbell Battles to sign in.'
-        );
+        router.replace(`/check-email?email=${encodeURIComponent(email.trim())}` as Href);
       }
     } catch (error) {
       Alert.alert(

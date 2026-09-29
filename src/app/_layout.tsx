@@ -12,7 +12,7 @@ export default function RootLayout() {
 }
 
 function RootNavigator() {
-  const { isLoading, profile, session } = useAuth();
+  const { isLoading, isPasswordRecovery, profile, session } = useAuth();
 
   if (isLoading) {
     return (
@@ -24,15 +24,15 @@ function RootNavigator() {
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Protected guard={!session}>
+      <Stack.Protected guard={!session || isPasswordRecovery}>
         <Stack.Screen name="(auth)" />
       </Stack.Protected>
 
-      <Stack.Protected guard={Boolean(session) && !profile}>
+      <Stack.Protected guard={Boolean(session) && !profile && !isPasswordRecovery}>
         <Stack.Screen name="onboarding" />
       </Stack.Protected>
 
-      <Stack.Protected guard={Boolean(session) && Boolean(profile)}>
+      <Stack.Protected guard={Boolean(session) && Boolean(profile) && !isPasswordRecovery}>
         <Stack.Screen name="(app)" />
       </Stack.Protected>
     </Stack>

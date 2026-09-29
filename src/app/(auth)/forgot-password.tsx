@@ -1,4 +1,4 @@
-import { type Href, Link } from 'expo-router';
+import { type Href, Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 
@@ -6,36 +6,39 @@ import { AuthScreen } from '@/components/auth-screen';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { colors, spacing } from '@/constants/theme';
+import { PASSWORD_RECOVERY_URL } from '@/lib/auth-links';
 import { supabase } from '@/lib/supabase';
 import { withTimeout } from '@/lib/with-timeout';
 
-export default function SignInScreen() {
+export default function ForgotPasswordScreen() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  async function handleSignIn() {
-    if (!email.trim() || !password) {
-      Alert.alert('Missing information', 'Enter your email and password.');
+  async function handleResetRequest() {
+    if (!email.trim()) {
+      Alert.alert('Email required', 'Enter the email address associated with your account.');
       return;
     }
 
     setIsSubmitting(true);
     try {
       const { error } = await withTimeout(
-        supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password,
+        supabase.auth.resetPasswordForEmail(email.trim(), {
+          redirectTo: PASSWORD_RECOVERY_URL,
         })
       );
 
       if (error) {
-        Alert.alert('Unable to sign in', error.message);
+        Alert.alert('Unable to send reset email', error.message);
+        return;
       }
+
+      router.replace(`/check-reset-email?email=${encodeURIComponent(email.trim())}` as Href);
     } catch (error) {
       Alert.alert(
         'Unable to reach Supabase',
-        error instanceof Error ? error.message : 'Check your network connection and try again.'
+        error instanceof Error ? error.message : 'Check your connection and try again.'
       );
     } finally {
       setIsSubmitting(false);
@@ -44,9 +47,9 @@ export default function SignInScreen() {
 
   return (
     <AuthScreen
-      eyebrow="FRIENDLY COMPETITION"
-      title="Welcome back"
-      description="Sign in to check your standings and keep building your total.">
+      eyebrow="ACCOUNT RECOVERY"
+      title="Reset your password"
+      description="Enter your account email and we’ll send you a secure password-reset link.">
       <View style={styles.form}>
         <Field
           autoCapitalize="none"
@@ -57,27 +60,15 @@ export default function SignInScreen() {
           placeholder="you@example.com"
           value={email}
         />
-        <Field
-          autoCapitalize="none"
-          autoComplete="current-password"
-          label="Password"
-          onChangeText={setPassword}
-          placeholder="Your password"
-          secureTextEntry
-          value={password}
-        />
-        <Link href={'/forgot-password' as Href} style={styles.forgotPassword}>
-          Forgot password?
-        </Link>
-        <Button disabled={isSubmitting} onPress={handleSignIn}>
-          {isSubmitting ? 'Signing in…' : 'Sign in'}
+        <Button disabled={isSubmitting} onPress={handleResetRequest}>
+          {isSubmitting ? 'Sending reset email…' : 'Send reset email'}
         </Button>
       </View>
 
       <Text style={styles.footer}>
-        New to Barbell Battles?{' '}
-        <Link href="/(auth)/sign-up" style={styles.link}>
-          Create an account
+        Remembered your password?{' '}
+        <Link href="/sign-in" style={styles.link}>
+          Sign in
         </Link>
       </Text>
     </AuthScreen>
@@ -92,12 +83,6 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: spacing.md,
-  },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    color: colors.primaryLight,
-    fontSize: 14,
-    fontWeight: '700',
   },
   link: {
     color: colors.accent,
