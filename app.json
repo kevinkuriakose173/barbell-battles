@@ -1,16 +1,22 @@
 {
   "expo": {
-    "name": "barbell-battles",
+    "name": "Barbell Battles",
     "slug": "barbell-battles",
+    "owner": "kevinkuriakosedev",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "barbellbattles",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.kevinkuriakose.barbellbattles",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
+      "package": "com.kevinkuriakose.barbellbattles",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -38,6 +44,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2ad7200b-0e48-4aef-8fa2-a006de4206c3"
+      }
     }
   }
 }
