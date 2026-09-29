@@ -1,4 +1,4 @@
-export async function withTimeout<T>(promise: Promise<T>, milliseconds = 10000): Promise<T> {
+export async function withTimeout<T>(promise: PromiseLike<T>, milliseconds = 10000): Promise<T> {
   let timeoutId: ReturnType<typeof setTimeout>;
 
   const timeout = new Promise<never>((_resolve, reject) => {

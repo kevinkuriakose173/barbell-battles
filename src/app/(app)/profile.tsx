@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -35,9 +35,16 @@ export default function ProfileScreen() {
           <ProfileRow label="Preferred unit" value={profile?.preferred_unit.toUpperCase() ?? 'LB'} />
         </View>
 
-        <View style={styles.comingSoon}>
-          <Text style={styles.comingSoonTitle}>Profile controls are next</Text>
-          <Text style={styles.comingSoonText}>Editing your profile, account security, and deletion will be added with the authentication hardening slice.</Text>
+        <View style={styles.actions}>
+          <Button onPress={() => router.push('/account/edit-profile' as Href)} variant="secondary">
+            Edit profile
+          </Button>
+          <Button onPress={() => router.push('/account/change-password' as Href)} variant="secondary">
+            Change password
+          </Button>
+          <Button onPress={() => router.push('/account/delete-account' as Href)} variant="secondary">
+            Delete account
+          </Button>
         </View>
 
         <Button onPress={handleSignOut} variant="secondary">Sign out</Button>
@@ -52,11 +59,9 @@ function ProfileRow({ label, value }: { label: string; value: string }) {
 
 const styles = StyleSheet.create({
   avatar: { alignItems: 'center', backgroundColor: colors.accent, borderRadius: 38, height: 76, justifyContent: 'center', width: 76 },
+  actions: { gap: spacing.sm },
   back: { color: colors.primaryLight, fontSize: 16, fontWeight: '700' },
   card: { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: 16, borderWidth: 1, padding: spacing.lg },
-  comingSoon: { backgroundColor: 'rgba(37, 99, 235, 0.12)', borderColor: colors.primary, borderRadius: 16, borderWidth: 1, gap: spacing.sm, padding: spacing.lg },
-  comingSoonText: { color: colors.textMuted, fontSize: 14, lineHeight: 21 },
-  comingSoonTitle: { color: colors.text, fontSize: 16, fontWeight: '800' },
   content: { gap: spacing.lg, padding: spacing.lg, paddingBottom: spacing.xl },
   divider: { backgroundColor: colors.border, height: 1, marginVertical: spacing.md },
   hero: { alignItems: 'center', flexDirection: 'row', gap: spacing.md },
