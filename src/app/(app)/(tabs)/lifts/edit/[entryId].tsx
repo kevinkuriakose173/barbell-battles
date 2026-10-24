@@ -15,7 +15,7 @@ import { useAuth } from '@/providers/auth-provider';
 export default function EditLiftScreen() {
   const { entryId } = useLocalSearchParams<{ entryId: string }>();
   const router = useRouter();
-  const { profile } = useAuth();
+  const { profile, session } = useAuth();
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [entry, setEntry] = useState<LiftEntry | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -29,7 +29,11 @@ export default function EditLiftScreen() {
   async function handleSubmit(values: LiftFormValues) {
     try {
       setIsSaving(true);
-      await updateLiftEntry(entryId, parseLiftForm(values, profile?.preferred_unit ?? 'lb'));
+      if (!session) throw new Error('You must be signed in to update a lift.');
+      await updateLiftEntry(entryId, {
+        ...parseLiftForm(values, profile?.preferred_unit ?? 'lb'),
+        userId: session.user.id,
+      });
       router.back();
     } catch (error) {
       Alert.alert('Unable to update lift', error instanceof Error ? error.message : 'Try again.');
@@ -47,7 +51,8 @@ export default function EditLiftScreen() {
   async function handleDelete() {
     try {
       setIsSaving(true);
-      await deleteLiftEntry(entryId);
+      if (!session) throw new Error('You must be signed in to delete a lift.');
+      await deleteLiftEntry(entryId, session.user.id);
       router.back();
     } catch (error) {
       Alert.alert('Unable to delete lift', error instanceof Error ? error.message : 'Try again.');

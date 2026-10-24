@@ -8,6 +8,7 @@ import { AppHeader } from '@/components/app-header';
 import { colors, spacing } from '@/constants/theme';
 import { getGroups } from '@/features/groups/api';
 import type { Group } from '@/features/groups/types';
+import { isQueryCacheFresh, queryKeys, readQueryCache, writeQueryCache } from '@/lib/query-cache';
 import { useAuth } from '@/providers/auth-provider';
 
 export default function GroupsTabScreen() {
@@ -17,12 +18,30 @@ export default function GroupsTabScreen() {
   const [isLoading, setIsLoading] = useState(true);
 
   const loadGroups = useCallback(async () => {
-    try { setGroups(await getGroups()); }
-    catch (error) { Alert.alert('Unable to load groups', error instanceof Error ? error.message : 'Try again.'); }
-    finally { setIsLoading(false); }
-  }, []);
+    const userId = session?.user.id;
+    if (!userId) return;
+    const cacheKey = queryKeys.groups(userId);
+    const cached = readQueryCache<Group[]>(cacheKey);
+    if (cached) {
+      setGroups(cached.data);
+      setIsLoading(false);
+      if (isQueryCacheFresh(cached)) return;
+    } else {
+      setIsLoading(true);
+    }
 
-  useFocusEffect(useCallback(() => { setIsLoading(true); void loadGroups(); }, [loadGroups]));
+    try {
+      const data = await getGroups();
+      setGroups(data);
+      writeQueryCache(cacheKey, data);
+    }
+    catch (error) {
+      if (!cached) Alert.alert('Unable to load groups', error instanceof Error ? error.message : 'Try again.');
+    }
+    finally { setIsLoading(false); }
+  }, [session?.user.id]);
+
+  useFocusEffect(useCallback(() => { void loadGroups(); }, [loadGroups]));
 
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea}>

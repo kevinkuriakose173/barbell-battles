@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { invalidateQueryCache } from '@/lib/query-cache';
 
 import type { Exercise, ExerciseWithEntries, LiftEntry } from './types';
 
@@ -66,9 +67,11 @@ export async function createLiftEntry(input: LiftEntryInput) {
     weight_kg: input.weightKg,
   });
   if (error) throw error;
+  invalidateQueryCache(`user:${input.userId}:lifts`);
+  invalidateQueryCache(`user:${input.userId}:leaderboard:`);
 }
 
-export async function updateLiftEntry(entryId: string, input: Omit<LiftEntryInput, 'userId'>) {
+export async function updateLiftEntry(entryId: string, input: LiftEntryInput) {
   const { error } = await supabase
     .from('lift_entries')
     .update({
@@ -79,9 +82,13 @@ export async function updateLiftEntry(entryId: string, input: Omit<LiftEntryInpu
     })
     .eq('id', entryId);
   if (error) throw error;
+  invalidateQueryCache(`user:${input.userId}:lifts`);
+  invalidateQueryCache(`user:${input.userId}:leaderboard:`);
 }
 
-export async function deleteLiftEntry(entryId: string) {
+export async function deleteLiftEntry(entryId: string, userId: string) {
   const { error } = await supabase.from('lift_entries').delete().eq('id', entryId);
   if (error) throw error;
+  invalidateQueryCache(`user:${userId}:lifts`);
+  invalidateQueryCache(`user:${userId}:leaderboard:`);
 }
