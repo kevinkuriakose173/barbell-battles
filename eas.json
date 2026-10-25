@@ -5,6 +5,7 @@
   },
   "build": {
     "development": {
+      "environment": "development",
       "developmentClient": true,
       "distribution": "internal"
     },
@@ -12,10 +13,15 @@
       "distribution": "internal"
     },
     "production": {
+      "environment": "production",
       "autoIncrement": true
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "ascAppId": "6826089766"
+      }
+    }
   }
 }

@@ -1,0 +1,43 @@
+name: Manual iOS development build
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    uses: ./.github/workflows/validate.yml
+
+  build:
+    name: Build iOS development client
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    concurrency:
+      group: development-ios-build
+      cancel-in-progress: false
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      EXPO_NO_TELEMETRY: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Verify Expo credential
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo '::error::Add the EXPO_TOKEN repository secret before building.'
+            exit 1
+          fi
+      - run: npm ci
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: 25.3.0
+          token: ${{ secrets.EXPO_TOKEN }}
+          packager: npm
+      - name: Build registered-device development client
+        run: eas build --platform ios --profile development --non-interactive --wait

@@ -1,0 +1,35 @@
+name: Validate app
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate app
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+      # Bundle validation needs config values, but never contacts this backend.
+      # Real production values are loaded by EAS from its production environment.
+      EXPO_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+      EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: TypeScript
+        run: npx tsc --noEmit
+      - name: ESLint
+        run: npm run lint
+      - name: Expo Doctor
+        run: npx --yes expo-doctor
+      - name: Export iOS JavaScript bundle
+        run: npx expo export --platform ios --output-dir dist-ci
