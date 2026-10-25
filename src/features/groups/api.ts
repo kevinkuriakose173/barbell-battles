@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { invalidateQueryCache } from '@/lib/query-cache';
 
 import type { Group } from './types';
 
@@ -12,14 +13,18 @@ export async function getGroups() {
   return data as Group[];
 }
 
-export async function createGroup(name: string) {
+export async function createGroup(name: string, userId: string) {
   const { data, error } = await supabase.rpc('create_group', { group_name: name });
   if (error) throw error;
+  invalidateQueryCache(`user:${userId}:groups`);
+  invalidateQueryCache(`user:${userId}:leaderboard:`);
   return data as string;
 }
 
-export async function joinGroup(joinCode: string) {
+export async function joinGroup(joinCode: string, userId: string) {
   const { data, error } = await supabase.rpc('join_group', { group_join_code: joinCode });
   if (error) throw error;
+  invalidateQueryCache(`user:${userId}:groups`);
+  invalidateQueryCache(`user:${userId}:leaderboard:`);
   return data as string;
 }

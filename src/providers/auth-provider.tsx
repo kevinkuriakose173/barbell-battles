@@ -6,10 +6,12 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from 'react';
 
 import { createSessionFromAuthLink } from '@/lib/auth-links';
+import { clearQueryCache } from '@/lib/query-cache';
 import { supabase } from '@/lib/supabase';
 
 export type Profile = {
@@ -42,6 +44,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [isHandlingAuthLink, setIsHandlingAuthLink] = useState(false);
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
   const [authLinkError, setAuthLinkError] = useState<string | null>(null);
+  const sessionUserIdRef = useRef<string | null>(null);
   const incomingUrl = Linking.useLinkingURL();
 
   const loadProfile = useCallback(async (nextSession: Session | null) => {
@@ -66,6 +69,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
+      sessionUserIdRef.current = data.session?.user.id ?? null;
       setSession(data.session);
       await loadProfile(data.session);
       setIsLoading(false);
@@ -73,6 +77,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
     const { data } = supabase.auth.onAuthStateChange((event, nextSession) => {
       if (event === 'PASSWORD_RECOVERY') setIsPasswordRecovery(true);
+      const nextUserId = nextSession?.user.id ?? null;
+      if (sessionUserIdRef.current && sessionUserIdRef.current !== nextUserId) clearQueryCache();
+      sessionUserIdRef.current = nextUserId;
       setSession(nextSession);
       setIsLoading(true);
       void loadProfile(nextSession).finally(() => setIsLoading(false));

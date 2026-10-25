@@ -9,21 +9,40 @@ import { colors, spacing } from '@/constants/theme';
 import { getExercisesWithEntries } from '@/features/lifts/api';
 import type { ExerciseWithEntries } from '@/features/lifts/types';
 import { formatWeight } from '@/lib/units';
+import { isQueryCacheFresh, queryKeys, readQueryCache, writeQueryCache } from '@/lib/query-cache';
 import { useAuth } from '@/providers/auth-provider';
 
 export default function MyLiftsTabScreen() {
   const router = useRouter();
-  const { profile } = useAuth();
+  const { profile, session } = useAuth();
   const [exercises, setExercises] = useState<ExerciseWithEntries[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const loadLifts = useCallback(async () => {
-    try { setExercises(await getExercisesWithEntries()); }
-    catch (error) { Alert.alert('Unable to load lifts', error instanceof Error ? error.message : 'Try again.'); }
-    finally { setIsLoading(false); }
-  }, []);
+    const userId = session?.user.id;
+    if (!userId) return;
+    const cacheKey = queryKeys.lifts(userId);
+    const cached = readQueryCache<ExerciseWithEntries[]>(cacheKey);
+    if (cached) {
+      setExercises(cached.data);
+      setIsLoading(false);
+      if (isQueryCacheFresh(cached)) return;
+    } else {
+      setIsLoading(true);
+    }
 
-  useFocusEffect(useCallback(() => { setIsLoading(true); void loadLifts(); }, [loadLifts]));
+    try {
+      const data = await getExercisesWithEntries();
+      setExercises(data);
+      writeQueryCache(cacheKey, data);
+    }
+    catch (error) {
+      if (!cached) Alert.alert('Unable to load lifts', error instanceof Error ? error.message : 'Try again.');
+    }
+    finally { setIsLoading(false); }
+  }, [session?.user.id]);
+
+  useFocusEffect(useCallback(() => { void loadLifts(); }, [loadLifts]));
 
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea}>
@@ -31,7 +50,6 @@ export default function MyLiftsTabScreen() {
         <AppHeader
           description={`Your best entry for each lift, ${profile?.first_name ?? 'athlete'}.`}
           eyebrow="MY LIFTS"
-          title="Personal records"
         />
         <Button onPress={() => router.push('/lifts/add')}>Add lift</Button>
         {isLoading ? <ActivityIndicator color={colors.primaryLight} size="large" /> : (

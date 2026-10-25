@@ -1,4 +1,4 @@
-import { Stack } from 'expo-router';
+import { Stack, useSegments } from 'expo-router';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { AuthProvider, useAuth } from '@/providers/auth-provider';
@@ -13,8 +13,9 @@ export default function RootLayout() {
 
 function RootNavigator() {
   const { isLoading, isPasswordRecovery, profile, session } = useAuth();
+  const segments = useSegments();
 
-  if (isLoading) {
+  if (isLoading && segments[0] !== 'privacy') {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator color="#2563eb" size="large" />
@@ -24,6 +25,7 @@ function RootNavigator() {
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="privacy" />
       <Stack.Protected guard={!session || isPasswordRecovery}>
         <Stack.Screen name="(auth)" />
       </Stack.Protected>

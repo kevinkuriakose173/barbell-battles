@@ -7,9 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { colors, spacing } from '@/constants/theme';
 import { createGroup } from '@/features/groups/api';
+import { useAuth } from '@/providers/auth-provider';
 
 export default function CreateGroupScreen() {
   const router = useRouter();
+  const { session } = useAuth();
   const [name, setName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
@@ -21,7 +23,8 @@ export default function CreateGroupScreen() {
     }
     try {
       setIsSaving(true);
-      await createGroup(trimmedName);
+      if (!session) throw new Error('You must be signed in to create a group.');
+      await createGroup(trimmedName, session.user.id);
       router.back();
     } catch (error) {
       Alert.alert('Unable to create group', error instanceof Error ? error.message : 'Try again.');
