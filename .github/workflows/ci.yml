@@ -1,0 +1,67 @@
+name: App CI and TestFlight
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    uses: ./.github/workflows/validate.yml
+
+  testflight:
+    name: Production iOS build and TestFlight upload
+    needs: checks
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    concurrency:
+      group: production-ios-release
+      cancel-in-progress: false
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      EXPO_NO_TELEMETRY: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Verify Expo credential
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo '::error::Add the EXPO_TOKEN repository secret before releasing.'
+            exit 1
+          fi
+      - run: npm ci
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: 25.3.0
+          token: ${{ secrets.EXPO_TOKEN }}
+          packager: npm
+      - name: Build production iOS app and wait for completion
+        run: eas build --platform ios --profile production --non-interactive --wait --json > "$RUNNER_TEMP/ios-build.json"
+      - name: Read the successful build ID
+        id: build
+        env:
+          BUILD_RESULT: ${{ runner.temp }}/ios-build.json
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync, appendFileSync } from 'node:fs';
+          const results = JSON.parse(readFileSync(process.env.BUILD_RESULT, 'utf8'));
+          const build = results.find(item => item.platform === 'IOS');
+          if (!build || build.status !== 'FINISHED') throw new Error('No successful iOS build was returned.');
+          appendFileSync(process.env.GITHUB_OUTPUT, `id=${build.id}\n`);
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY, `Production iOS build: ${build.id}\n\n`);
+          NODE
+      - name: Upload this build to TestFlight and wait for submission
+        env:
+          BUILD_ID: ${{ steps.build.outputs.id }}
+        run: eas submit --platform ios --profile production --id "$BUILD_ID" --non-interactive --wait
+      - name: Record delivery status
+        run: |
+          echo 'Upload to App Store Connect completed. Apple processing and tester availability are separate; test this build in TestFlight before App Review.' >> "$GITHUB_STEP_SUMMARY"
