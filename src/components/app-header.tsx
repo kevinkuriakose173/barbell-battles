@@ -7,30 +7,36 @@ import { useAuth } from '@/providers/auth-provider';
 type AppHeaderProps = {
   description: string;
   eyebrow: string;
-  title: string;
+  title?: string;
 };
 
 export function AppHeader({ description, eyebrow, title }: AppHeaderProps) {
+  return (
+    <View style={styles.row}>
+      <View style={styles.copy}>
+        <Text style={styles.eyebrow}>{eyebrow}</Text>
+        {title ? <Text style={styles.title}>{title}</Text> : null}
+        <Text style={styles.description}>{description}</Text>
+      </View>
+      <ProfileButton />
+    </View>
+  );
+}
+
+export function ProfileButton() {
   const router = useRouter();
   const { profile } = useAuth();
   const initials = `${profile?.first_name.charAt(0) ?? ''}${profile?.last_name.charAt(0) ?? ''}`.toUpperCase();
 
   return (
-    <View style={styles.row}>
-      <View style={styles.copy}>
-        <Text style={styles.eyebrow}>{eyebrow}</Text>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.description}>{description}</Text>
-      </View>
-      <Pressable
-        accessibilityLabel="Open profile"
-        accessibilityRole="button"
-        hitSlop={8}
-        onPress={() => router.push('/profile' as Href)}
-        style={({ pressed }) => [styles.avatar, pressed && styles.pressed]}>
-        <Text style={styles.initials}>{initials || '?'}</Text>
-      </Pressable>
-    </View>
+    <Pressable
+      accessibilityLabel="Open profile"
+      accessibilityRole="button"
+      hitSlop={8}
+      onPress={() => router.push('/profile' as Href)}
+      style={({ pressed }) => [styles.avatar, pressed && styles.pressed]}>
+      <Text style={styles.initials}>{initials || '?'}</Text>
+    </Pressable>
   );
 }
 

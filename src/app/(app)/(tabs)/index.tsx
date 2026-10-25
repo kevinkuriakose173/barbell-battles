@@ -3,6 +3,7 @@ import { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ProfileButton } from '@/components/app-header';
 import { colors, spacing } from '@/constants/theme';
 import { getGroups } from '@/features/groups/api';
 import type { Group } from '@/features/groups/types';
@@ -117,14 +118,17 @@ export default function LeaderboardTabScreen() {
     <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea}>
       <ScrollView contentContainerStyle={[styles.content, isCompact && styles.compactContent]} directionalLockEnabled showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.eyebrow}>BARBELL BATTLES</Text>
-          <Text style={styles.title}>Leaderboard</Text>
-          {isRefreshing ? (
-            <View accessibilityLabel="Refreshing leaderboard" accessibilityRole="progressbar" style={styles.refreshing}>
-              <ActivityIndicator color={colors.primaryLight} size="small" />
-              <Text style={styles.refreshingText}>Updating…</Text>
+          <View style={styles.headerCopy}>
+            <Text style={styles.eyebrow}>BARBELL BATTLES</Text>
+          </View>
+          <View style={styles.headerActions}>
+            <View style={styles.refreshingSlot}>
+              {isRefreshing ? (
+                <ActivityIndicator accessibilityLabel="Refreshing leaderboard" color={colors.primaryLight} size="small" />
+              ) : null}
             </View>
-          ) : null}
+            <ProfileButton />
+          </View>
         </View>
 
         <View style={styles.filters}>
@@ -383,7 +387,9 @@ const styles = StyleSheet.create({
   filterError: { alignItems: 'center', backgroundColor: '#2a1f24', borderColor: '#6e3945', borderRadius: 12, borderWidth: 1, flexDirection: 'row', gap: spacing.sm, justifyContent: 'space-between', marginTop: -spacing.sm, paddingHorizontal: 12, paddingVertical: 10 },
   filterErrorText: { color: '#fecdd3', flex: 1, fontSize: 12, fontWeight: '700' },
   filters: { flexDirection: 'row', gap: spacing.sm },
-  header: { gap: spacing.xs, position: 'relative' },
+  header: { alignItems: 'flex-start', flexDirection: 'row', gap: spacing.md },
+  headerActions: { alignItems: 'center', flexDirection: 'row', gap: spacing.sm },
+  headerCopy: { flex: 1, gap: spacing.xs },
   hint: { color: colors.textMuted, fontSize: 12, marginTop: -spacing.sm },
   liftCount: { color: colors.textMuted, fontSize: 11 },
   listAvatar: { alignItems: 'center', backgroundColor: '#21314c', borderColor: colors.border, borderRadius: 18, borderWidth: 2, height: 36, justifyContent: 'center', width: 36 },
@@ -429,8 +435,7 @@ const styles = StyleSheet.create({
   rankingRow: { alignItems: 'center', flexDirection: 'row', gap: spacing.sm, minHeight: 64, paddingHorizontal: 12, paddingVertical: 9 },
   rankingRowBorder: { borderBottomColor: colors.border, borderBottomWidth: StyleSheet.hairlineWidth },
   rankingScroller: { maxHeight: 256 },
-  refreshing: { alignItems: 'center', bottom: 4, flexDirection: 'row', gap: 6, position: 'absolute', right: 0 },
-  refreshingText: { color: colors.textMuted, fontSize: 11, fontWeight: '700' },
+  refreshingSlot: { alignItems: 'center', height: 20, justifyContent: 'center', width: 20 },
   safeArea: { backgroundColor: colors.background, flex: 1 },
   score: { color: colors.text, fontSize: 15, fontWeight: '900' },
   scoreBlock: { alignItems: 'flex-end', gap: spacing.xs },
@@ -441,6 +446,5 @@ const styles = StyleSheet.create({
   stateIcon: { alignItems: 'center', backgroundColor: '#1b2a43', borderColor: colors.border, borderRadius: 28, borderWidth: 1, height: 56, justifyContent: 'center', marginBottom: spacing.md, width: 56 },
   stateIconText: { color: colors.accent, fontSize: 25, fontWeight: '900' },
   stateTitle: { color: colors.text, fontSize: 20, fontWeight: '900', textAlign: 'center' },
-  title: { color: colors.text, fontSize: 30, fontWeight: '900', letterSpacing: -0.6 },
   username: { color: colors.textMuted, fontSize: 11, marginTop: 1 },
 });

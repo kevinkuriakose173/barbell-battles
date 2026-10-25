@@ -36,6 +36,9 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.actions}>
+          <Button onPress={() => router.push('/privacy' as Href)} variant="secondary">
+            Privacy policy
+          </Button>
           <Button onPress={() => router.push('/account/edit-profile' as Href)} variant="secondary">
             Edit profile
           </Button>

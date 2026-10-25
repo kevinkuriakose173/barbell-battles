@@ -50,7 +50,6 @@ export default function MyLiftsTabScreen() {
         <AppHeader
           description={`Your best entry for each lift, ${profile?.first_name ?? 'athlete'}.`}
           eyebrow="MY LIFTS"
-          title="Personal records"
         />
         <Button onPress={() => router.push('/lifts/add')}>Add lift</Button>
         {isLoading ? <ActivityIndicator color={colors.primaryLight} size="large" /> : (

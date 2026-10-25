@@ -49,7 +49,6 @@ export default function GroupsTabScreen() {
         <AppHeader
           description="Create a group or join friends with an invite code."
           eyebrow="GROUPS"
-          title="Your groups"
         />
         <View style={styles.actions}>
           <Button onPress={() => router.push('/groups/create' as Href)}>Create group</Button>
